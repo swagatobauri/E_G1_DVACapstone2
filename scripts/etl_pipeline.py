@@ -302,6 +302,82 @@ class AmazonDataCleaner:
             f"Null count: {null_count}.\n{distribution.to_string()}"
         )
 
+    def fix_nulls(self):
+        """
+        Imputes all remaining null values in the cleaned dataset with
+        semantically appropriate sentinel strings.
+
+        WHY a dedicated method (not inline in other steps)?
+        Each prior cleaning method focuses on one column's *format*. Null-filling
+        for text/URL columns is a separate concern — grouping it here makes the
+        pipeline audit-friendly: one place to inspect and update null strategy.
+
+        Columns addressed and rationale:
+        ─────────────────────────────────────────────────────────────────────────
+        buy_box_availability  (9.85% null)
+            Only one non-null value exists in the entire dataset: 'Add to cart'.
+            A null here means the product had no active Buy Box during scraping
+            (e.g., out of stock, sold by third party without Buy Box win).
+            Fill → 'Unavailable'  (meaningful for downstream availability analysis)
+
+        delivery_details  (0.37% null)
+            Mostly 'Renewed', digital, or Protection Plan listings that had no
+            delivery estimate shown on the scraped page.
+            Fill → 'Not Available'  (honest; avoids fake delivery date imputation)
+
+        product_url  (5.78% null)
+            The scraper captured the image URL but not the product page URL for
+            these rows (typically sponsored/SSPA links where the URL was
+            JavaScript-rendered). The ASIN cannot be reliably recovered from the
+            image CDN path alone.
+            Fill → 'Unknown'  (keeps rows — still fully valid for price/rating/
+            category analysis — but marks link as unresolvable)
+        ─────────────────────────────────────────────────────────────────────────
+        """
+        logging.info("Fixing residual null values in string columns...")
+
+        # Track nulls only in the three text columns we are responsible for filling.
+        # WHY not assert total-dataframe nulls == 0 here?
+        # listed_price and current_price can still hold NaN at this point for rows
+        # where no price was ever scraped. Those rows are intentionally removed by
+        # the subsequent outlier/price filter (price <= 0 or NaN). Asserting
+        # total-null == 0 prematurely would cause a false failure.
+        text_cols = ['buy_box_availability', 'delivery_details', 'product_url']
+        null_before = self.df[text_cols].isna().sum().sum()
+
+        # buy_box_availability: null = no active buy box → 'Unavailable'
+        # Only one non-null value exists ('Add to cart'); null signals no buy box win.
+        self.df['buy_box_availability'] = (
+            self.df['buy_box_availability'].fillna('Unavailable')
+        )
+
+        # delivery_details: null = no delivery estimate shown → 'Not Available'
+        # Common for Renewed, digital, and Protection Plan listings.
+        self.df['delivery_details'] = (
+            self.df['delivery_details'].fillna('Not Available')
+        )
+
+        # product_url: null = scraper failed to capture URL → 'Unknown'
+        # Rows are kept; all analytical columns (price, rating, category) remain intact.
+        self.df['product_url'] = (
+            self.df['product_url'].fillna('Unknown')
+        )
+
+        null_after = self.df[text_cols].isna().sum().sum()
+
+        # Scoped assertion: only the three text columns we just filled must be null-free
+        assert null_after == 0, (
+            f"Data quality failure: {null_after} null(s) remain in text columns "
+            f"after fix_nulls(). Affected: "
+            f"{[c for c in text_cols if self.df[c].isna().any()]}"
+        )
+
+        logging.info(
+            f"fix_nulls() complete. Text-column nulls before: {null_before}, "
+            f"after: {null_after}. buy_box_availability, delivery_details, "
+            f"and product_url are now null-free."
+        )
+
     def run_pipeline(self):
         """Executes the full ETL cleaning pipeline."""
         logging.info("--- Starting ETL Pipeline ---")
@@ -317,9 +393,23 @@ class AmazonDataCleaner:
         # and before outlier filtering (so category is present on all rows).
         self.assign_category()
 
-        # Outlier handling: dropping rows with price < 0 or abnormally high
-        self.df = self.df[(self.df['current_price'] > 0) & (self.df['current_price'] < 50000)]
-        
+        # Null imputation: runs after all structural cleaning steps so that
+        # columns are in their final form before we decide what 'missing' means.
+        self.fix_nulls()
+
+        # Outlier / null-price filter:
+        # Drop rows where current_price is NaN (no price was ever scraped for these)
+        # or price is out of valid range (≤ 0 or > 50,000).
+        # WHY here and not in clean_prices()? clean_prices() uses cross-column
+        # imputation (fill missing listed from current and vice versa). Only rows
+        # where BOTH prices are unparseable survive to this point as NaN — they
+        # carry no analytical value and are removed here as a final quality gate.
+        self.df = self.df[
+            self.df['current_price'].notna() &
+            (self.df['current_price'] > 0) &
+            (self.df['current_price'] < 50000)
+        ]
+
         self.save_data()
         logging.info("--- ETL Pipeline Completed Successfully ---")
 
