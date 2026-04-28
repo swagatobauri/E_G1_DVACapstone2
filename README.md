@@ -168,13 +168,24 @@ python scripts/etl_pipeline.py
 
 ---
 
-## 👥 Team Contributors
 
-| Role | Member(s) |
-|------|-----------|
-| 📊 Tableau Dashboard Design | Aman |
-| 🔧 Data Cleaning & ETL Pipeline | Adnan |
-| 📈 EDA, PPT & Project Report | Bhoomi, Gauri, Mouli, Swagato, Prashant |
+## 👥 Team Contribution Matrix
+
+| Team Member | Primary Role | Deliverables |
+| :--- | :--- | :--- |
+| **Aman** | Project Lead, Visualisation Lead | Repo setup, timeline management, submission compliance, Gate 1, KPIs, Tableau dashboard |
+| **Adnan Rizvi** | ETL Lead, Quality Lead | Engineered a production-grade ETL pipeline, restructured the repo |
+| **Bhoomi Chhikara** | ETL Lead, Analysis Lead | Notebook 01 and 03 - Extraction and EDA |
+| **Mouli Srivastava** | Analysis Lead, Report Lead | Notebook 04 - Statistical Analysis, Final Report PDF, contribution matrix |
+| **Gauri Mishra** | Report Lead | Prepared the Report PDF |
+| **Prashant Raj** | PPT Lead | Designed and structured the final presentation deck |
+| **Swagato Bauri** | Documentation Lead | Documented the process in Readme.md |
+
+<br>
+
+<div align="center">
+
+</div>
 
 ---
 
