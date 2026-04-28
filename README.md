@@ -62,23 +62,28 @@ E_G1_DVACapstone2/
 ## 🔄 Project Workflow
 
 ```mermaid
-graph TD
-    A[(Raw Data\namazon_products_sales_data_uncleaned.csv)] -->|Ingest| B(Data Cleaning & Imputation)
-    B --> C[Feature Engineering & Categorization]
-    C --> D[(Processed Data\ncleaned_data.csv)]
-    D --> E(Exploratory Data Analysis)
-    D --> F(Statistical Analysis)
-    E --> G[Tableau Dashboard]
+flowchart LR
+    %% Nodes and Flow
+    A[(📥 Raw Data\nuncleaned.csv)]:::raw -->|Ingest| B[🧹 Data Cleaning\n& Imputation]:::step
+    B --> C[🔧 Feature Eng &\nCategorization]:::step
+    C --> D[(✅ Processed Data\ncleaned.csv)]:::clean
+
+    D -->|Feeds| E[📊 Exploratory\nData Analysis]:::analysis
+    D -->|Feeds| F[📈 Statistical\nAnalysis]:::analysis
+
+    E --> G[📉 Tableau\nDashboard]:::viz
     F --> G
-    G --> H((Final Delivery\nReport & Dashboard))
 
-    style A fill:#ff9999,stroke:#333,stroke-width:2px
-    style D fill:#99ccff,stroke:#333,stroke-width:2px
-    style G fill:#ffcc99,stroke:#333,stroke-width:2px
-    style H fill:#99ff99,stroke:#333,stroke-width:2px
+    G --> H((🎯 Final Delivery\nReport & Dash)):::final
+
+    %% Custom Colors for Visual Hierarchy
+    classDef raw fill:#ffcccc,stroke:#cc4444,stroke-width:2px,color:#7a0000
+    classDef step fill:#ede9fe,stroke:#7c3aed,stroke-width:1px,color:#3b0764
+    classDef clean fill:#cce5ff,stroke:#185fa5,stroke-width:2px,color:#042c53
+    classDef analysis fill:#fef08a,stroke:#ca8a04,stroke-width:1px,color:#713f12
+    classDef viz fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#7c2d12
+    classDef final fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
 ```
-
----
 
 ## 🛠️ Full Data Cleaning Pipeline
 
