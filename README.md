@@ -80,44 +80,56 @@ graph TD
 
 ---
 
-## ⚙️ ETL Pipeline
-
-All cleaning was performed via `scripts/etl_pipeline.py` (`AmazonDataCleaner` class).
-
-### Full Cleaning Pipeline
+## 🛠️ Full Data Cleaning Pipeline
 
 ```mermaid
 flowchart TD
-    A([📥 Raw Dataset\namazon_products_sales_data_uncleaned.csv]):::input --> B
-    B[🔍 Data Quality Assessment\nNulls · Duplicates · Type mismatches · No category column]:::step --> C
-    C[🩹 Missing Value Treatment\nNumeric: impute or drop · Categorical: semantic fallback]:::step --> D
-    D[🗑️ Duplicate Removal\nUnique product entries retained only]:::step --> E
-    E[🔢 Data Type Conversion\nPrice → float · Rating → float · Reviews → int]:::step --> F
-    F[💰 Price Processing\nImpute listed & current price · Filter negatives & outliers above $50k]:::step --> G
-    G[🔤 Text Standardisation\nTrim spaces · Unify casing · Remove special characters]:::step --> H
-    H{{"⭐ Product Category Creation — CRITICAL STEP\nKeyword-based engine applied to raw data\n→ Adds standardised product_category column"}}:::critical --> I
-    I[🔧 Feature Engineering\nis_best_seller · has_coupon · is_sponsored · is_sustainable]:::step --> J
-    J[🔁 Null Imputation\nSemantic fallbacks for buy_box, delivery_details, product_url]:::step --> K
-    K([✅ Cleaned Dataset Exported\ndata/processed/cleaned_data.csv]):::output
+    subgraph Phase1 [1. Initial Cleaning]
+        direction LR
+        A([📥 Raw Data]):::input --> B[🔍 Quality Check]:::step --> C[🩹 Impute Nulls]:::step --> D[🗑️ Drop Duplicates]:::step
+    end
 
+    subgraph Phase2 [2. Transformations]
+        direction LR
+        E[🔢 Data Types]:::step --> F[💰 Prices]:::step --> G[🔤 Format Text]:::step
+    end
+
+    subgraph Phase3 [3. Enrichment & Export]
+        direction LR
+        H{{"⭐ Categories"}}:::critical --> I[🔧 New Features]:::step --> J([✅ Clean Data]):::output
+    end
+
+    %% Direct connections between phases to save space
+    Phase1 --> Phase2 --> Phase3
+
+    %% Custom Colors
     classDef input    fill:#ffcccc,stroke:#cc4444,stroke-width:2px,color:#7a0000
     classDef step     fill:#ede9fe,stroke:#7c3aed,stroke-width:1px,color:#3b0764
     classDef critical fill:#ccfdf0,stroke:#0f6e56,stroke-width:2px,color:#04342c
     classDef output   fill:#cce5ff,stroke:#185fa5,stroke-width:2px,color:#042c53
+    
+    %% Clean border style
+    style Phase1 fill:none,stroke:#b0bec5,stroke-dasharray: 5 5
+    style Phase2 fill:none,stroke:#b0bec5,stroke-dasharray: 5 5
+    style Phase3 fill:none,stroke:#b0bec5,stroke-dasharray: 5 5
 ```
 
-### Why Each Step Matters
+<br>
 
-| Cleaning Step | Problem Statement Requirement |
-|---|---|
-| Missing value treatment | Accurate ratings & review counts |
-| Duplicate removal | Reliable engagement metrics |
-| Type conversion | Correct numeric comparisons |
-| Price processing | Valid discount calculations |
-| Text standardisation | Consistent category grouping |
-| **Product category creation** | **Enables category-level analysis** |
-| Feature engineering | Best seller & coupon segmentation |
-| Null imputation | No gaps in downstream reporting |
+### 🎯 Why Each Step Matters
+
+| 🧹 Cleaning Step | 📊 Alignment with Problem Statement |
+| :--- | :--- |
+| 🩹 **Missing value treatment** | Essential for accurate **ratings & review counts** |
+| 🗑️ **Duplicate removal** | Guarantees reliable and unique **engagement metrics** |
+| 🔢 **Type conversion** | Enables correct **numeric comparisons** across categories |
+| 💰 **Price processing** | Forms the baseline for valid **discount calculations** |
+| 🔤 **Text standardisation** | Ensures consistent **category grouping** |
+| ⭐ **Product category creation** | *(Critical)* **Enables category-level analysis and strategy** |
+| 🔧 **Feature engineering** | Facilitates deeper **best-seller & coupon segmentation** |
+| 🔁 **Null imputation** | Ensures there are **no gaps in downstream Tableau reporting** |
+
+---
 
 ### Pipeline Steps Summary
 
