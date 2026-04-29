@@ -13,7 +13,7 @@ Welcome to our team's DVA (Data Visualization and Analytics) portfolio directory
 | **Bhoomi Chhikara** | [Add Link Here]() | [Add Repo Link Here]() |
 | **Gauri Mishra** | [Add Link Here]() | [Add Repo Link Here]() |
 | **Mouli Srivastava** | [Add Link Here]() | [Add Repo Link Here]() |
-| **Prashant Raj** | [Add Link Here]() | [Add Repo Link Here]() |
+| **Prashant Raj** | [Portfolio](https://prashantraj-code.github.io/DVA_Portfolio_Resume/) | [Repositry Link](https://github.com/prashantraj-code/DVA_Portfolio_Resume) |
 | **Swagato Bauri** | [Add Link Here]() | [Add Repo Link Here]() |
 
 ---
